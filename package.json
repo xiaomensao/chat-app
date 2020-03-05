@@ -1,0 +1,15 @@
+{
+    "name": "chat-app",
+    "version": "0.0.1",
+    "description": "my first socket.io app",
+    "scripts": {
+        "test": "nodemon index.js",
+        "prestart": "npm install",
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.15.2",
+        "nodemon": "^2.0.2",
+        "socket.io": "^2.3.0"
+    }
+}
