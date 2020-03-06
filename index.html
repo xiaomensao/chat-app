@@ -1,4 +1,10 @@
 <!doctype html>
+<style>
+  html, body, main {
+    margin: 0;
+    height: 100%;
+  }
+</style>
 <html>
   <head>
     <title>Socket.IO chat</title>
@@ -10,6 +16,14 @@
       .w-90 {
         width: 90%;
       }
+
+      #message-area {
+        height: 90%;
+      }
+
+      #type-area {
+        height: 9%;
+      }
     </style>
   </head>
   <body>
@@ -17,32 +31,136 @@
     <script>
       $(function () {
         var socket = io();
+         
+        var user = {
+          name: '',
+          color: '0',
+        };
+
+        if (!user.name) {
+          socket.emit('get default nickname');
+        } else {
+          socket.emit('user in', user);
+          $("#name-area").html('You are ' + user.name);
+        }
+
+        socket.on('get default nickname', function(name) {
+          if (!user.name) {
+            user.name = name;
+            console.log(user.name);
+            socket.emit('user in', user);
+            $("#name-area").html('You are ' + user.name);
+          }
+        });
+
         $('form').submit(function(e){
           e.preventDefault(); // prevents page reloading
-          socket.emit('chat message', $('#m').val());
-          $('#m').val('');
+          var m = $('#m').val();
+          if (m.substring(0, 1) == '/') {
+            // command
+            var send = {
+              user: user,
+              newName: user.name,
+              newColor: user.color
+            };
+            if (m.includes("nickcolor ")) {
+              // change color
+              var newColor = m.split("/nickcolor ")[1];
+              send.newColor = newColor;
+              socket.emit('update user', send);
+
+            } else if (m.includes("nick ")) {
+              // change nickname
+              var newName = m.split("/nick ")[1];
+              send.newName = newName;
+              socket.emit('update user', send);
+
+            } else {
+              alert('Invalid command!');
+            }
+          } else {
+            // message
+            var msg = {
+              content: m,
+              time: new Date().toLocaleString(),
+              user: user
+            };
+            socket.emit('chat message', msg);
+          }
+          
           return false;
         });
+
         socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
+          appendMessage(msg, user);
         });
+
+        socket.on('user in', function(user){
+          appendUser(user);
+        });
+
+        socket.on('chat history', function(messageQueue) {
+          $('#messages').html('');
+          messageQueue.forEach(message => {
+            appendMessage(message, user);
+          });
+        });
+
+        socket.on('current users', function(currentUsers) {
+          $('#users').html('');
+          currentUsers.forEach(user => {
+            appendUser(user);
+          });
+        });
+
+        socket.on('update user', function(retVal) {
+          console.log(retVal);
+          var result = retVal.result;
+          var newName = retVal.newName;
+          if (!result) {
+            // fail
+            alert('The nick name is used!');
+          } else {
+            // success
+            user.name = newName;
+            $("#name-area").html('You are ' + user.name);
+          }
+        })
       });
+
+      function appendMessage(msg, currentUser) {
+        msgText = msg.time + ' <span style="color: #'+ msg.user.color +'">' + msg.user.name + '</span>: ';
+        if (msg)
+        $('#messages').append($('<li>').html(msgText));
+      }
+
+      function appendUser(user) {
+        $('#users').append($('<li>').text(user.name));
+      }
+
     </script>
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <h1>Messages</h1>
+    <div class="container h-100">
+      <div class="row" id="message-area">
+        <div class="col-8 bg-light h-100 border">
+          <h2 id="name-area"></h2>
           <ul id="messages"></ul>
+        </div>
+        <div class="col-4 bg-light h-100 border">
+          <h2>Current Users</h2>
+          <ul id="users"></ul>
+        </div>
+      </div>
+      <div class="row" id="type-area">
+        <div class="col-12 border">
+          <form class="form-inline w-100 mt-2" action="">
+            <div class="form-group mx-sm-3 mb-2 w-90">
+              <input id="m" class="form-control w-100" autocomplete="off" />
+            </div>
+            <button type="submit" class="btn btn-primary mb-2">Send</button>
+          </form>
         </div>
       </div>
     </div>
-    <div class="fixed-bottom">
-      <form class="form-inline w-100" action="">
-        <div class="form-group mx-sm-3 mb-2 w-90">
-          <input id="m" class="form-control w-100" autocomplete="off" />
-        </div>
-        <button type="submit" class="btn btn-primary mb-2">Send</button>
-      </form>
-    </div>
+    
   </body>
 </html>
