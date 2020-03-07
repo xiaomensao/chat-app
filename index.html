@@ -24,6 +24,15 @@
       #type-area {
         height: 9%;
       }
+
+      #messages {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        max-height: 100%;
+        overflow: -moz-scrollbars-vertical; 
+        overflow-y: scroll;
+      }
     </style>
   </head>
   <body>
@@ -31,9 +40,11 @@
     <script>
       $(function () {
         var socket = io();
+
+        var nameCookie = document.cookie.replace(/(?:(?:^|.*;\s*)name\s*\=\s*([^;]*).*$)|^.*$/, "$1");
          
         var user = {
-          name: '',
+          name: nameCookie,
           color: '0',
         };
 
@@ -47,6 +58,7 @@
         socket.on('get default nickname', function(name) {
           if (!user.name) {
             user.name = name;
+            document.cookie = "name=" + name;
             console.log(user.name);
             socket.emit('user in', user);
             $("#name-area").html('You are ' + user.name);
@@ -123,6 +135,7 @@
           } else {
             // success
             user.name = newName;
+            document.cookie = "name=" + newName;
             $("#name-area").html('You are ' + user.name);
           }
         })
@@ -130,7 +143,10 @@
 
       function appendMessage(msg, currentUser) {
         msgText = msg.time + ' <span style="color: #'+ msg.user.color +'">' + msg.user.name + '</span>: ';
-        if (msg)
+        msgText = msgText + msg.content;
+        if (msg.user.name == currentUser.name) {
+          msgText = '<strong>' + msgText + '</strong>';
+        }
         $('#messages').append($('<li>').html(msgText));
       }
 
@@ -140,13 +156,19 @@
 
     </script>
     <div class="container h-100">
+      <div class="row">
+        <div class="col-8">
+          <h2 id="name-area"></h2>
+        </div>
+        <div class="col-4">
+          <h2>Current Users</h2>
+        </div>
+      </div>
       <div class="row" id="message-area">
         <div class="col-8 bg-light h-100 border">
-          <h2 id="name-area"></h2>
           <ul id="messages"></ul>
         </div>
         <div class="col-4 bg-light h-100 border">
-          <h2>Current Users</h2>
           <ul id="users"></ul>
         </div>
       </div>
