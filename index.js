@@ -76,9 +76,10 @@ io.on('connection', function(socket) {
     }
     var retVal = {
       result: !nameDuplicate,
-      newName: newName
+      newName: newName,
+      newColor: newColor,
     };
-    io.emit('update user', retVal);
+    socket.emit('update user', retVal);
     if (!nameDuplicate) {
       var usr = currentUsers.find(us => us.name == user.name);
       usr.name = newName;

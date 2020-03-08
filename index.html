@@ -32,10 +32,10 @@
       #messages {
         position: absolute;
         bottom: 0;
-        width: 100%;
-        max-height: 100%;
-        overflow: -moz-scrollbars-vertical; 
-        overflow-y: scroll;
+        max-height:90%;
+        overflow: scroll;
+        padding-right: 2%;
+        list-style-type:none;
       }
     </style>
   </head>
@@ -46,10 +46,13 @@
         var socket = io();
 
         var nameCookie = document.cookie.replace(/(?:(?:^|.*;\s*)name\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-         
+        
+        var colorCookie = document.cookie.replace(/(?:(?:^|.*;\s*)color\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+
+
         var user = {
           name: nameCookie,
-          color: '0',
+          color: colorCookie,
         };
 
         socket.on('initialize', function() {
@@ -77,6 +80,7 @@
         $('form').submit(function(e){
           e.preventDefault(); // prevents page reloading
           var m = $('#m').val();
+          $('#m').val('');
           if (m.substring(0, 1) == '/') {
             // command
             var send = {
@@ -143,13 +147,16 @@
           console.log(retVal);
           var result = retVal.result;
           var newName = retVal.newName;
+          var newColor = retVal.newColor;
           if (!result) {
             // fail
             alert('The nick name is used!');
           } else {
             // success
             user.name = newName;
+            user.color = newColor;
             document.cookie = "name=" + newName;
+            document.cookie = "color=" + newColor;
             $("#name-area").html('You are ' + user.name);
           }
         })
@@ -162,6 +169,8 @@
           msgText = '<strong>' + msgText + '</strong>';
         }
         $('#messages').append($('<li>').html(msgText));
+        var element = document.getElementById('messages');
+        element.scrollTop = element.scrollHeight - element.clientHeight;
       }
 
       function appendUser(user) {
