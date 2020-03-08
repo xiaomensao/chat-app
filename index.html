@@ -32,6 +32,7 @@
       #messages {
         position: absolute;
         bottom: 0;
+        max-width: 90%;
         max-height:90%;
         overflow: scroll;
         padding-right: 2%;
@@ -91,8 +92,12 @@
             if (m.includes("nickcolor ")) {
               // change color
               var newColor = m.split("/nickcolor ")[1];
-              send.newColor = newColor;
-              socket.emit('update user', send);
+              if (isNaN(newColor)) {
+                alert("Wrong color format (RRGGBB)!")
+              } else {
+                send.newColor = newColor;
+                socket.emit('update user', send);
+              }
 
             } else if (m.includes("nick ")) {
               // change nickname
@@ -195,16 +200,18 @@
           <ul id="users"></ul>
         </div>
       </div>
-      <div class="row" id="type-area">
-        <div class="col-12 border">
-          <form class="form-inline w-100 mt-2" action="">
-            <div class="form-group mx-sm-3 mb-2 w-90">
+      <form class="form">
+        <div class="row border" id="type-area">
+          <div class="col-10 mt-2">
+            <div class="form-group w-100">
               <input id="m" class="form-control w-100" autocomplete="off" />
             </div>
+          </div>
+          <div class="col-2 mt-2">
             <button type="submit" class="btn btn-primary mb-2">Send</button>
-          </form>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
     
   </body>
