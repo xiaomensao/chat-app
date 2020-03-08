@@ -6,25 +6,6 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
 });
 
-// var nickNameList = [{
-//   name: 'Mike',
-//   isUsed: false,
-// },
-// {
-//   name: 'Jack',
-//   isUsed: false,
-// },
-// {
-//   name: 'Tony',
-//   isUsed: false,
-// },{
-//   name: 'Justin',
-//   isUsed: false,
-// },{
-//   name: 'James',
-//   isUsed: false,
-// }];
-
 var nickNameList = ['Mike', 'Jack', 'Tony', 'Justin', 'James'];
 
 var messageQueue = [];
@@ -38,28 +19,25 @@ io.on('connection', function(socket) {
   io.emit('chat history', messageQueue);
   io.emit('current users', currentUsers);
 
+  io.emit('initialize');
+
   socket.on('user in', function(user) {
-    io.emit('user in', user);
-    userExist = false;
+    var userExist = false;
     for (var i = 0; i < currentUsers.length; i++) {
-      if (currentUsers[i].name == user) {
+      if (currentUsers[i].name == user.name) {
         userExist = true;
       }
     }
     if (!userExist) {
-      user.socketId = this.id;
       currentUsers.push(user);
       console.log(currentUsers);
     }
+    io.emit('current users', currentUsers);
   });
 
   socket.on('disconnect', function() {
-    console.log('user disconnected');
-    var userIndex = currentUsers.findIndex(user => {
-      user.socketId = this.id;
-    });
-    currentUsers.splice(userIndex, 1);
-    io.emit('current users', currentUsers);
+    currentUsers = [];
+    io.emit('initialize');
   });
 
   socket.on('chat message', function(msg) {

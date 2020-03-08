@@ -17,8 +17,12 @@
         width: 90%;
       }
 
+      #title-area {
+        height: 9%;
+      }
+
       #message-area {
-        height: 90%;
+        height: 80%;
       }
 
       #type-area {
@@ -48,14 +52,19 @@
           color: '0',
         };
 
-        if (!user.name) {
-          socket.emit('get default nickname');
-        } else {
-          socket.emit('user in', user);
-          $("#name-area").html('You are ' + user.name);
-        }
+        socket.on('initialize', function() {
+          console.log('initialize');
+          $('#users').html('');
+          if (!user.name) {
+            socket.emit('get default nickname');
+          } else {
+            socket.emit('user in', user);
+            $("#name-area").html('You are ' + user.name);
+          }
+        });
 
         socket.on('get default nickname', function(name) {
+          console.log('get default nickname');
           if (!user.name) {
             user.name = name;
             document.cookie = "name=" + name;
@@ -104,14 +113,17 @@
         });
 
         socket.on('chat message', function(msg){
+          console.log('chat message');
           appendMessage(msg, user);
         });
 
-        socket.on('user in', function(user){
-          appendUser(user);
-        });
+        // socket.on('user in', function(user){
+        //   console.log('user in');
+        //   appendUser(user);
+        // });
 
         socket.on('chat history', function(messageQueue) {
+          console.log('chat history');
           $('#messages').html('');
           messageQueue.forEach(message => {
             appendMessage(message, user);
@@ -119,6 +131,7 @@
         });
 
         socket.on('current users', function(currentUsers) {
+          console.log('current users');
           $('#users').html('');
           currentUsers.forEach(user => {
             appendUser(user);
@@ -126,6 +139,7 @@
         });
 
         socket.on('update user', function(retVal) {
+          console.log('update user');
           console.log(retVal);
           var result = retVal.result;
           var newName = retVal.newName;
@@ -156,7 +170,7 @@
 
     </script>
     <div class="container h-100">
-      <div class="row">
+      <div class="row" id="title-area">
         <div class="col-8">
           <h2 id="name-area"></h2>
         </div>
